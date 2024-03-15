@@ -76,6 +76,7 @@ FROM
         (NOT nodes.tags?'amenity' OR nodes.tags->'amenity' NOT IN ('bicycle_parking', 'ferry_terminal')) AND
         (NOT nodes.tags?'entrance' OR nodes.tags->'entrance' = 'no') AND
         (NOT nodes.tags?'noexit' OR nodes.tags->'noexit' = 'no')
+        (NOT nodes.tags?'leisure' OR nodes.tags->'leisure' = 'slipway')
 WHERE
     way_ends.level < 3 OR way_ends.highway = 'cycleway'
 GROUP BY
