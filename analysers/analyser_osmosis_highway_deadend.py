@@ -84,6 +84,7 @@ GROUP BY
 HAVING
     COUNT(*) = 1
 ) AS t
+"""
 
 sql24 = """
 SELECT
