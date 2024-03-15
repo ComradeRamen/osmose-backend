@@ -479,7 +479,6 @@ Ensure that `service=drive-through` is the correct tag.''')),
         self.run(sql50, lambda res: {"class":5, "data":[self.way_full, self.node, self.positionAsText]})
 
     def analyser_osmosis_full(self):
-        self.run(sql20)
         self.run(sql21)
         self.run(sql22)
         self.run(sql23.format(''))
@@ -487,7 +486,6 @@ Ensure that `service=drive-through` is the correct tag.''')),
         self.run(sql25, self.callback22)
 
     def analyser_osmosis_diff(self):
-        self.run(sql20)
         self.run(sql21)
         self.run(sql22)
         self.run(sql23.format('touched_'))
