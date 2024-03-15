@@ -35,19 +35,6 @@ SELECT ARRAY(
 $$ LANGUAGE 'sql' STRICT IMMUTABLE;
 """
 
-sql20 = """
-CREATE TEMP TABLE ferry AS
-SELECT
-    linestring,
-    nodes
-FROM
-    ways
-WHERE
-    tags != ''::hstore AND
-    tags?'route' AND
-    tags->'route' = 'ferry'
-"""
-
 sql21 = """
 CREATE TEMP TABLE bicycle_parking AS
 SELECT
@@ -62,7 +49,6 @@ WHERE
 """
 
 sql22 = """
-CREATE INDEX idx_ferry_linestring ON ferry USING GIST(linestring);
 CREATE INDEX idx_bicycle_parking_linestring ON bicycle_parking USING GIST(linestring);
 """
 
@@ -87,7 +73,7 @@ FROM
         NOT highways.is_construction
     JOIN nodes ON
         nodes.id = way_ends.nid AND
-        (NOT nodes.tags?'amenity' OR nodes.tags->'amenity' != 'bicycle_parking') AND
+        (NOT nodes.tags?'amenity' OR nodes.tags->'amenity' NOT IN ('bicycle_parking', 'ferry_terminal')) AND
         (NOT nodes.tags?'entrance' OR nodes.tags->'entrance' = 'no') AND
         (NOT nodes.tags?'noexit' OR nodes.tags->'noexit' = 'no')
 WHERE
@@ -98,12 +84,6 @@ GROUP BY
 HAVING
     COUNT(*) = 1
 ) AS t
-    LEFT JOIN ferry ON
-        ferry.linestring && t.geom AND
-        t.nid = ANY(ferry.nodes)
-WHERE
-    ferry IS NULL
-"""
 
 sql24 = """
 SELECT
@@ -179,7 +159,7 @@ FROM
 WHERE
   tags != ''::hstore AND
   (
-    (tags?'amenity'  AND tags->'amenity' IN ('parking_entrance', 'parking')) OR
+    (tags?'amenity'  AND tags->'amenity' IN ('parking_entrance', 'parking', 'ferry_terminal')) OR
     (tags?'entrance' AND tags->'entrance' IN ('garage', 'emergency')) OR
     (tags?'aerialway' AND tags->'aerialway' = 'station') OR
     (tags?'amenity' AND tags->'amenity' = 'ferry_terminal')
