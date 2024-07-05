@@ -1,6 +1,5 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <osm version='0.6' generator='JOSM'>
-  <node id='-25814' action='modify' visible='true' lat='51.85103281348' lon='5.83822555773' />
   <node id='1' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85303753624' lon='5.83317659938' />
   <node id='2' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85303060034' lon='5.83387279372' />
   <node id='3' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85267125081' lon='5.83316873145' />
@@ -187,12 +186,7 @@
   <node id='171' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85202358367' lon='5.83921193808' />
   <node id='172' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85178500585' lon='5.83895981044' />
   <node id='173' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85202027009' lon='5.83973182267' />
-  <way id='-698' action='modify' visible='true'>
-    <nd ref='60' />
-    <nd ref='-25814' />
-    <tag k='highway' v='motorway_link' />
-    <tag k='oneway' v='yes' />
-  </way>
+  <node id='174' timestamp='2014-03-31T22:00:00Z' visible='true' version='1' lat='51.85103281348' lon='5.83822555773' />
   <way id='1000' timestamp='2014-03-31T22:00:00Z' visible='true' version='1'>
     <nd ref='1' />
     <nd ref='2' />
@@ -370,7 +364,7 @@
     <nd ref='57' />
     <nd ref='62' />
     <nd ref='56' />
-    <nd ref='-25814' />
+    <nd ref='174' />
     <tag k='highway' v='motorway' />
     <tag k='name' v='Class 2 and 3 bad' />
   </way>
@@ -850,6 +844,12 @@
     <nd ref='171' />
     <nd ref='172' />
     <tag k='highway' v='trunk' />
+    <tag k='oneway' v='yes' />
+  </way>
+  <way id='1098' timestamp='2014-03-31T22:00:00Z' visible='true' version='1'>
+    <nd ref='60' />
+    <nd ref='174' />
+    <tag k='highway' v='motorway_link' />
     <tag k='oneway' v='yes' />
   </way>
 </osm>
