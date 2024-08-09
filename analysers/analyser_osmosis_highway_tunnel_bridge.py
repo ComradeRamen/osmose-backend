@@ -120,7 +120,11 @@ FROM
     JOIN nodes ON
         nodes.geom && bt_connections.linestring AND nodes.geom && bt_ways.linestring AND -- One is redundant, but let the planner choose
         nodes.id = ANY(bt_ways.nodes) AND
-        nodes.id = ANY(bt_connections.nodes)
+        nodes.id = ANY(bt_connections.nodes) AND
+        nodes.id != bt_ways.nodes[1] AND
+        nodes.id != bt_ways.nodes[array_length(bt_ways.nodes,1)] AND
+        nodes.id != bt_connections.nodes[1] AND
+        nodes.id != bt_connections.nodes[array_length(bt_ways.nodes,1)]
 WHERE
     (
         (
