@@ -102,7 +102,7 @@ HAVING
 """
 
 sql40 = """
-WITH bridge_tunnel_ways AS (
+WITH bt_ways AS (
     SELECT
         id,
         nodes,
@@ -114,7 +114,7 @@ WITH bridge_tunnel_ways AS (
         (tags?'bridge' AND tags->'bridge' NOT IN ('no', 'boardwalk')) OR
         (tags?'tunnel' AND tags->'tunnel' NOT IN ('no', 'avalanche_protector'))
 ),
-non_bridge_tunnel_ways AS (
+nbt_ways AS (
     SELECT
         id,
         nodes,
@@ -137,32 +137,31 @@ non_bridge_tunnel_ways AS (
 )
 SELECT DISTINCT
     nodes.id AS node_id,
-    bridge_tunnel_ways.id AS bridge_tunnel_id,
-    non_bridge_tunnel_ways.id AS non_bridge_tunnel_id,
+    bt_ways.id AS bt_way_id,
+    nbt_ways.id AS nbt_way_id,
     ST_AsText(nodes.geom) AS node_geometry,
     CASE
-        WHEN bridge_tunnel_ways.tags?'bridge' THEN 'bridge'
+        WHEN bt_ways.tags?'bridge' THEN 'bridge'
         ELSE 'tunnel'
     END AS type
 FROM
-    bridge_tunnel_ways
-    JOIN non_bridge_tunnel_ways ON
-        non_bridge_tunnel_ways.linestring && bridge_tunnel_ways.linestring AND
-        non_bridge_tunnel_ways.nodes && bridge_tunnel_ways.nodes AND
-        non_bridge_tunnel_ways.id != bridge_tunnel_ways.id
+    bt_ways
+    JOIN nbt_ways ON
+        nbt_ways.linestring && bt_ways.linestring AND
+        nbt_ways.nodes && bt_ways.nodes AND
+        nbt_ways.id != bt_ways.id
     JOIN nodes ON
-        nodes.geom && non_bridge_tunnel_ways.linestring AND nodes.geom && bridge_tunnel_ways.linestring AND
-        nodes.id = ANY(bridge_tunnel_ways.nodes) AND
-        nodes.id = ANY(non_bridge_tunnel_ways.nodes) AND
-        nodes.id != bridge_tunnel_ways.nodes[1] AND
-        nodes.id != bridge_tunnel_ways.nodes[array_length(bridge_tunnel_ways.nodes, 1)]
+        nodes.geom && nbt_ways.linestring AND nodes.geom && bt_ways.linestring AND
+        nodes.id = ANY(bt_ways.nodes) AND
+        nodes.id = ANY(nbt_ways.nodes) AND
+        nodes.id != bt_ways.nodes[1] AND
+        nodes.id != bt_ways.nodes[array_length(bt_ways.nodes, 1)]
 WHERE
     (
-        (bridge_tunnel_ways.tags?'bridge' AND non_bridge_tunnel_ways.level <= 4) OR
-        (bridge_tunnel_ways.tags?'tunnel' AND non_bridge_tunnel_ways.level <= 4 AND
-         (NOT non_bridge_tunnel_ways.tags?'covered' OR non_bridge_tunnel_ways.tags->'covered' = 'no'))
+        (bt_ways.tags?'bridge' AND nbt_ways.level <= 4) OR
+        (bt_ways.tags?'tunnel' AND nbt_ways.level <= 4 AND
+         (NOT nbt_ways.tags?'covered' OR nbt_ways.tags->'covered' = 'no'))
     )
-
 """
 
 
