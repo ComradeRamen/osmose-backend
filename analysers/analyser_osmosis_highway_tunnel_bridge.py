@@ -102,7 +102,7 @@ HAVING
 """
 
 sql40 = """
-SELECT DISTINCT
+SELECT
     nodes.id,
     bt_ways.id,
     bt_connections.id,
@@ -110,7 +110,8 @@ SELECT DISTINCT
     CASE
         WHEN bt_ways.tags?'bridge' AND bt_ways.tags->'bridge'!='no' THEN 'bridge'
         ELSE 'tunnel'
-    END
+    END,
+    nodes.id IN (bt_connections.nodes[1], bt_connections.nodes[array_length(bt_connections.nodes,1)]) OR bt_connections.is_area
 FROM
     {0}highways AS bt_ways
     JOIN {1}highways AS bt_connections ON
@@ -126,6 +127,8 @@ FROM
 WHERE
     (
         (
+            bt_ways.highway NOT IN ('steps') AND
+            bt_connections.highway NOT IN ('steps') AND
             bt_ways.tags?'bridge' AND bt_ways.tags->'bridge' NOT IN ('no', 'boardwalk') AND
             (NOT bt_connections.tags?'bridge' OR bt_connections.tags->'bridge' = 'no') AND
             (NOT bt_connections.tags?'man_made' OR bt_connections.tags->'man_made' != 'pier')
@@ -137,8 +140,6 @@ WHERE
             (NOT bt_connections.tags?'covered' OR bt_connections.tags->'covered' = 'no')
         )
     ) AND
-    bt_ways.highway NOT IN ('steps') AND
-    bt_connections.highway NOT IN ('steps') AND
     NOT bt_ways.is_construction AND NOT bt_connections.is_construction AND
     -- Below: filter all cases where one would for instance walk from a building directly onto a bridge
     (NOT bt_connections.tags?'indoor' OR bt_connections.tags->'indoor' = 'no') AND
@@ -158,7 +159,7 @@ class Analyser_Osmosis_Highway_Tunnel_Bridge(Analyser_Osmosis):
             title = T_('Bridge structure missing'),
             detail = T_(
 '''The length of the bridge makes it deserve a more detailed tag than
-bridge=yes.'''),
+`bridge=yes`.'''),
             fix = T_(
 '''See the possible [types of
 bridges](https://wiki.openstreetmap.org/wiki/Key:bridge).'''))
@@ -166,33 +167,33 @@ bridges](https://wiki.openstreetmap.org/wiki/Key:bridge).'''))
         #    title = T_('Missing maxheight tag'))
         #self.classs_change[3] = self.def_class(item = 7130, level = 3, tags = ['tag', 'highway', 'layer', "fix:imagery"],
         #    title = T_('Missing layer tag around bridge'))
-        self.classs_change[4] = self.def_class(item = 7012, level = 3, tags = ['highway', 'fix:survey', 'fix:imagery'],
-            title = T_('Bridge connected to non-bridge highway'),
+        doc = dict(
             detail = T_(
 '''A bridge or tunnel is usually not connected to regular highways except at the end points.'''),
             fix = T_(
 '''Disconnect the bridge or tunnel from the highway, or add missing bridge or tunnel tags.
 
 If the highway is truely connected to the bridge or tunnel, it may only be by a short section of this highway.
-If so, you may have to split the connecting way, and adding bridge or tunnel tags only on the relevant part.'''),
-            trap = T_(
-'''There might be bad detections with connections at the bridge heads or tunnel entrances.'''))
-        self.classs_change[5] = self.def_class(item = 7012, level = 3, tags = ['highway', 'fix:survey', 'fix:imagery'],
-            title = T_('Tunnel connected to non-tunnel highway'),
-            detail = T_(
-'''A bridge or tunnel is usually not connected to regular highways except at the end points.'''),
-            fix = T_(
-'''Disconnect the bridge or tunnel from the highway, or add missing bridge or tunnel tags.
+If so, you may have to split the connecting way and add bridge or tunnel tags only on the relevant part.
 
-If the highway is truely connected to the bridge or tunnel, it may only be by a short section of this highway.
-If so, you may have to split the connecting way, and adding bridge or tunnel tags only on the relevant part.'''),
+If the bridge or tunnel actually consists of more than one bridge or tunnel separated by a section of regular highway,
+split the bridge or tunnel and adjust the tags accordingly.'''),
             trap = T_(
-'''There might be bad detections with connections at the bridge heads or tunnel entrances.'''))
+'''There might be bad detections with connections at the bridge heads or tunnel entrances.''')
+        )
+        self.classs_change[4] = self.def_class(item = 7012, level = 2, tags = ['highway', 'fix:survey', 'fix:imagery', 'routing'],
+            title = T_('Bridge connected to crossing non-bridge highway'), **doc)
+        self.classs_change[5] = self.def_class(item = 7012, level = 2, tags = ['highway', 'fix:survey', 'fix:imagery', 'routing'],
+            title = T_('Tunnel connected to crossing non-tunnel highway'), **doc)
+        self.classs_change[6] = self.def_class(item = 7012, level = 3, tags = ['highway', 'fix:survey', 'fix:imagery'],
+            title = T_('Bridge connected to non-bridge highway'), **doc)
+        self.classs_change[7] = self.def_class(item = 7012, level = 3, tags = ['highway', 'fix:survey', 'fix:imagery'],
+            title = T_('Tunnel connected to non-tunnel highway'), **doc)
 
         self.callback10 = lambda res: {"class":1, "data":[self.way_full, self.positionAsText], "fix":[{"+":{"bridge:structure":"beam"}}, {"+":{"bridge:structure":"suspension"}}] }
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
-        self.callback40 = lambda res: {"class": 4 if res[4] == 'bridge' else 5, "data": [self.node_full, self.way, self.way_full, self.positionAsText] }
+        self.callback40 = lambda res: {"class": (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0), "data": [self.node_full, self.way, self.way, self.positionAsText] }
 
     def analyser_osmosis_full(self):
         self.run(sql10.format(""), self.callback10)
@@ -228,9 +229,11 @@ class Test(TestAnalyserOsmosis):
             a.analyser()
 
         self.root_err = self.load_errors()
-        self.check_err(cl="4", elems=[("node", "26"), ("way", "1008"), ("way", "1013")])
+        self.check_err(cl="1", elems=[("way", "1018")])
         self.check_err(cl="4", elems=[("node", "30"), ("way", "1008"), ("way", "1014")])
-        self.check_err(cl="4", elems=[("node", "39"), ("way", "1008"), ("way", "1019")])
-        self.check_err(cl="4", elems=[("node", "39"), ("way", "1008"), ("way", "1020")])
         self.check_err(cl="5", elems=[("node", "13"), ("way", "1004"), ("way", "1005")])
-        self.check_num_err(5)
+        self.check_err(cl="6", elems=[("node", "26"), ("way", "1008"), ("way", "1013")])
+        self.check_err(cl="6", elems=[("node", "39"), ("way", "1008"), ("way", "1019")])
+        self.check_err(cl="6", elems=[("node", "39"), ("way", "1008"), ("way", "1020")])
+        self.check_err(cl="7", elems=[("node", "42"), ("way", "1004"), ("way", "1022")])
+        self.check_num_err(7)
