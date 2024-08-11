@@ -102,66 +102,48 @@ HAVING
 """
 
 sql40 = """
-WITH bt_ways AS (
-    SELECT
-        id,
-        nodes,
-        linestring,
-        tags
-    FROM
-        {0}highways
-    WHERE
-        (tags?'bridge' AND tags->'bridge' NOT IN ('no', 'boardwalk')) OR
-        (tags?'tunnel' AND tags->'tunnel' NOT IN ('no', 'avalanche_protector'))
-),
-nbt_ways AS (
-    SELECT
-        id,
-        nodes,
-        linestring,
-        tags,
-        level,
-        highway,
-        is_construction
-    FROM
-        {1}highways
-    WHERE
-        (NOT tags?'bridge' OR tags->'bridge' = 'no') AND
-        (NOT tags?'tunnel' OR tags->'tunnel' = 'no') AND
-        (NOT tags?'man_made' OR tags->'man_made' != 'pier') AND
-        highway NOT IN ('steps') AND
-        NOT is_construction AND
-        (NOT tags?'indoor' OR tags->'indoor' = 'no') AND
-        NOT tags?'location' AND
-        NOT tags?'level'
-)
 SELECT DISTINCT
-    nodes.id AS node_id,
-    bt_ways.id AS bt_way_id,
-    nbt_ways.id AS nbt_way_id,
-    ST_AsText(nodes.geom) AS node_geometry,
+    nodes.id,
+    bt_ways.id,
+    bt_connections.id,
+    ST_AsText(nodes.geom),
     CASE
-        WHEN bt_ways.tags?'bridge' THEN 'bridge'
+        WHEN bt_ways.tags?'bridge' AND bt_ways.tags->'bridge'!='no' THEN 'bridge'
         ELSE 'tunnel'
-    END AS type
+    END
 FROM
-    bt_ways
-    JOIN nbt_ways ON
-        nbt_ways.linestring && bt_ways.linestring AND
-        nbt_ways.nodes && bt_ways.nodes AND
-        nbt_ways.id != bt_ways.id
+    {0}highways AS bt_ways
+    JOIN {1}highways AS bt_connections ON
+        bt_connections.linestring && bt_ways.linestring AND
+        bt_connections.nodes && bt_ways.nodes AND
+        bt_connections.id != bt_ways.id
     JOIN nodes ON
-        nodes.geom && nbt_ways.linestring AND nodes.geom && bt_ways.linestring AND
+        nodes.geom && bt_connections.linestring AND nodes.geom && bt_ways.linestring AND -- One is redundant, but let the planner choose
         nodes.id = ANY(bt_ways.nodes) AND
-        nodes.id = ANY(nbt_ways.nodes) AND
+        nodes.id = ANY(bt_connections.nodes) AND
         nodes.id != bt_ways.nodes[1] AND
-        nodes.id != bt_ways.nodes[array_length(bt_ways.nodes, 1)]
+        nodes.id != bt_ways.nodes[array_length(bt_ways.nodes,1)]
 WHERE
     (
-        (bt_ways.tags?'bridge' AND nbt_ways.level <= 4) OR
-        (bt_ways.tags?'tunnel' AND nbt_ways.level <= 4 AND
-         (NOT nbt_ways.tags?'covered' OR nbt_ways.tags->'covered' = 'no'))
-    )
+        (
+            bt_ways.tags?'bridge' AND bt_ways.tags->'bridge' NOT IN ('no', 'boardwalk') AND
+            (NOT bt_connections.tags?'bridge' OR bt_connections.tags->'bridge' = 'no') AND
+            (NOT bt_connections.tags?'man_made' OR bt_connections.tags->'man_made' != 'pier')
+        ) OR (
+            -- Tunnels for 'low level' highways give many false positives, hence only enable for crossing 'car roads'
+            bt_ways.level <= 4 AND bt_connections.level <= 4 AND
+            bt_ways.tags?'tunnel' AND bt_ways.tags->'tunnel' NOT IN ('no', 'avalanche_protector') AND
+            (NOT bt_connections.tags?'tunnel' OR bt_connections.tags->'tunnel' = 'no') AND
+            (NOT bt_connections.tags?'covered' OR bt_connections.tags->'covered' = 'no')
+        )
+    ) AND
+    bt_ways.highway NOT IN ('steps') AND
+    bt_connections.highway NOT IN ('steps') AND
+    NOT bt_ways.is_construction AND NOT bt_connections.is_construction AND
+    -- Below: filter all cases where one would for instance walk from a building directly onto a bridge
+    (NOT bt_connections.tags?'indoor' OR bt_connections.tags->'indoor' = 'no') AND
+    NOT bt_connections.tags?'location' AND
+    NOT bt_connections.tags?'level'
 """
 
 
@@ -176,7 +158,7 @@ class Analyser_Osmosis_Highway_Tunnel_Bridge(Analyser_Osmosis):
             title = T_('Bridge structure missing'),
             detail = T_(
 '''The length of the bridge makes it deserve a more detailed tag than
-`bridge=yes`.'''),
+bridge=yes.'''),
             fix = T_(
 '''See the possible [types of
 bridges](https://wiki.openstreetmap.org/wiki/Key:bridge).'''))
