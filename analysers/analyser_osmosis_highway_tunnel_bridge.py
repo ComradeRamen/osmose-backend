@@ -196,18 +196,17 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40(res):
             class_value = (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0)
-            data_value = [self.node_full, self.way_full, self.way, self.positionAsText]
+            data = [self.node_full, self.way_full, self.way, self.positionAsText]
             
-            # Print the class value and data value
-            print(f"Class: {class_value}, Data: {data_value}")
-            
-            return {
-                "class": class_value,
-                "data": data_value
-            }
+            print(f"Class: {class_value}")
+            print(f"Node Full: {self.node_full}")
+            print(f"Way Full: {self.way_full}")
+            print(f"Way: {self.way}")
+            print(f"Position: {self.positionAsText}")
         
-        # Example of how you would assign this callback function
-        self.callback40 = callback40
+            # Return the same structure if needed elsewhere in the code
+            return {"class": class_value, "data": data}
+
 
     def analyser_osmosis_full(self):
         self.run(sql10.format(""), self.callback10)
