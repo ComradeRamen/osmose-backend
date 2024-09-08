@@ -195,20 +195,28 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40_with_print(res):
-            # Call the methods to get the actual data
-            node_full_data = self.node_full()
-            way_full_data = self.way_full()
-            way_data = self.way()
-            position_data = self.positionAsText()
+            # Debugging output
+            print(f"Received res: {res}")
         
-            # Print the relevant data for debugging
-            print(f"Node Full: {node_full_data}, Way Full: {way_full_data}, Way: {way_data}, Position: {position_data}")
+            try:
+                # Extract data from res safely
+                feature_type = res[4]  # 'bridge' or 'tunnel'
+                has_additional_feature = res[5]  # Boolean flag
         
-            # Continue with the original logic
-            return {
-                "class": (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0),
-                "data": [node_full_data, way_full_data, way_data, position_data]
-            }
+                # Ensure the return value is properly constructed
+                ret = {
+                    "class": (4 if feature_type == 'bridge' else 5) + (2 if has_additional_feature else 0),
+                    "data": [self.node_full(), self.way_full(), self.way(), self.positionAsText()]
+                }
+        
+                print(f"Returning: {ret}")
+                return ret
+        
+            except IndexError as e:
+                # If res does not contain expected elements, handle the error
+                print(f"Error processing res: {res} with error: {str(e)}")
+                return None  # Or return some default error
+
         
         # Assign the new function to self.callback40
         self.callback40 = callback40_with_print
