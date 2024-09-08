@@ -195,7 +195,7 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40_with_print(res):
-            # Debugging output
+            # Debugging output to log what we received
             print(f"Received res: {res}")
         
             try:
@@ -203,19 +203,27 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
                 feature_type = res[4]  # 'bridge' or 'tunnel'
                 has_additional_feature = res[5]  # Boolean flag
         
-                # Ensure the return value is properly constructed
+                # Call the methods with relevant parts of 'res'
+                self.node_full(res[0])  # Pass the node ID from res[0]
+                self.way_full(res[1])   # Pass the first way ID from res[1]
+                self.way(res[2])        # Pass the second way ID from res[2]
+                self.positionAsText(res[3])  # Pass the WKT geometry string from res[3]
+        
+                # Construct the return value
                 ret = {
                     "class": (4 if feature_type == 'bridge' else 5) + (2 if has_additional_feature else 0),
-                    "data": [self.node_full(), self.way_full(), self.way(), self.positionAsText()]
+                    "data": [self.node_full(res[0]), self.way_full(res[1]), self.way(res[2]), self.positionAsText(res[3])]
                 }
         
+                # Debugging output for return data
                 print(f"Returning: {ret}")
                 return ret
         
-            except IndexError as e:
-                # If res does not contain expected elements, handle the error
-                print(f"Error processing res: {res} with error: {str(e)}")
-                return None  # Or return some default error
+            except TypeError as e:
+                # If there's an error, print it for debugging
+                print(f"Error: {str(e)}")
+                return None
+        
 
         
         # Assign the new function to self.callback40
