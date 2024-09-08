@@ -24,9 +24,9 @@ fi
 case $TEST_SUITE in
   lint)  pylama; exit $?;;
   mypy)  mypy .; exit $?;;
-  sax)   PYTEST_PARAM="analysers/analyser_sax.py";;
-  merge) PYTEST_PARAM="analysers/Analyser_Merge.py";;
-  other) PYTEST_PARAM="--ignore=analysers/analyser_sax.py --ignore=analysers/Analyser_Merge.py";;
+  sax)   PYTEST_PARAM="-s analysers/analyser_sax.py";;
+  merge) PYTEST_PARAM="-s analysers/Analyser_Merge.py";;
+  other) PYTEST_PARAM="-s --ignore=analysers/analyser_sax.py --ignore=analysers/Analyser_Merge.py";;
   *)     PYTEST_PARAM="";;
 esac
 
