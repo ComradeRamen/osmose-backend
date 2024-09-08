@@ -206,7 +206,7 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         
             # Return the same structure if needed elsewhere in the code
             return {"class": class_value, "data": data}
-
+        self.callback40 = callback40
 
     def analyser_osmosis_full(self):
         self.run(sql10.format(""), self.callback10)
