@@ -195,20 +195,14 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40(res):
-            # Pass the res (or part of it) to the methods to get the actual data
-            node_full_data = self.node_full(res)  # Pass the res (or part of it) to get the node's full data
-            way_full_data = self.way_full(res)    # Pass the res to get the way's full data
-            way_data = self.way(res)              # Pass the res to get the basic way data
-            position_data = self.positionAsText(res)  # Pass the res to get the position in text format
-            
-            # Print the data for debugging
+            # Print the actual values by calling the methods
             print(f"Processing result: res[4] = {res[4]}, res[5] = {res[5]}")
-            print(f"Node: {node_full_data}, Way Full: {way_full_data}, Way: {way_data}, Position: {position_data}")
+            print(f"Node: {self.node_full()}, Way Full: {self.way_full()}, Way: {self.way()}, Position: {self.positionAsText()}")
             
-            # Return the processed result
+            # Process the result and return the expected structure with actual values
             return {
                 "class": (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0),
-                "data": [node_full_data, way_full_data, way_data, position_data]
+                "data": [self.node_full(), self.way_full(), self.way(), self.positionAsText()]
             }
         
         # Assign the callback
