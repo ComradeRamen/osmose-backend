@@ -201,13 +201,13 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
             # Calculate the class based on 'bridge' condition and other attributes
             class_val = (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0)
             
-            # Print detailed information about the data being processed
-            print(f"Class: {class_val}, Node: {self.node_full()}, Way Full: {self.way_full()}, Way: {self.way()}, Position: {self.positionAsText()}")
+            # Print detailed information about the data being processed, passing 'res' to the methods
+            print(f"Class: {class_val}, Node: {self.node_full(res)}, Way Full: {self.way_full(res)}, Way: {self.way(res)}, Position: {self.positionAsText(res)}")
             
-            # Return the processed result as usual
+            # Return the processed result as usual, also passing 'res' to the methods
             return {
                 "class": class_val,
-                "data": [self.node_full(), self.way_full(), self.way(), self.positionAsText()]
+                "data": [self.node_full(res), self.way_full(res), self.way(res), self.positionAsText(res)]
             }
         
         # Assign the function to the callback
