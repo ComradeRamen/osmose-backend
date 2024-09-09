@@ -195,11 +195,11 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40(res):
-            # Call the methods to get the actual data
-            node_full_data = self.node_full()  # Call the method to get the node's full data
-            way_full_data = self.way_full()    # Call the method to get the way's full data
-            way_data = self.way()              # Call the method to get the basic way data
-            position_data = self.positionAsText()  # Call the method to get the position in text format
+            # Pass the res (or part of it) to the methods to get the actual data
+            node_full_data = self.node_full(res)  # Pass the res (or part of it) to get the node's full data
+            way_full_data = self.way_full(res)    # Pass the res to get the way's full data
+            way_data = self.way(res)              # Pass the res to get the basic way data
+            position_data = self.positionAsText(res)  # Pass the res to get the position in text format
             
             # Print the data for debugging
             print(f"Processing result: res[4] = {res[4]}, res[5] = {res[5]}")
@@ -213,8 +213,6 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         
         # Assign the callback
         self.callback40 = callback40
-
-
 
 
     def analyser_osmosis_full(self):
