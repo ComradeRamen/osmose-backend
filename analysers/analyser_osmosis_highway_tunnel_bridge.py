@@ -202,12 +202,12 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
             class_val = (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0)
             
             # Print detailed information about the data being processed
-            print(f"Class: {class_val}, Node: {self.node_full}, Way Full: {self.way_full}, Way: {self.way}, Position: {self.positionAsText}")
+            print(f"Class: {class_val}, Node: {self.node_full()}, Way Full: {self.way_full()}, Way: {self.way()}, Position: {self.positionAsText()}")
             
             # Return the processed result as usual
             return {
                 "class": class_val,
-                "data": [self.node_full, self.way_full, self.way, self.positionAsText]
+                "data": [self.node_full(), self.way_full(), self.way(), self.positionAsText()]
             }
         
         # Assign the function to the callback
