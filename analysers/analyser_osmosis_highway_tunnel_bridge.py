@@ -195,19 +195,23 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40(res):
-            # Print the actual values by passing the 'res' argument
-            print(f"Processing result: res[4] = {res[4]}, res[5] = {res[5]}")
-            print(f"Node: {self.node_full(res)}, Way Full: {self.way_full(res)}, Way: {self.way(res)}, Position: {self.positionAsText(res)}")
+            # Print the result for debugging purposes
+            print("Result: ", res)
             
-            # Process the result and return the expected structure with actual values
+            # Calculate the class based on 'bridge' condition and other attributes
+            class_val = (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0)
+            
+            # Print detailed information about the data being processed
+            print(f"Class: {class_val}, Node: {self.node_full}, Way Full: {self.way_full}, Way: {self.way}, Position: {self.positionAsText}")
+            
+            # Return the processed result as usual
             return {
-                "class": (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0),
-                "data": [self.node_full(res), self.way_full(res), self.way(res), self.positionAsText(res)]
+                "class": class_val,
+                "data": [self.node_full, self.way_full, self.way, self.positionAsText]
             }
         
-        # Assign the callback
+        # Assign the function to the callback
         self.callback40 = callback40
-
 
 
     def analyser_osmosis_full(self):
