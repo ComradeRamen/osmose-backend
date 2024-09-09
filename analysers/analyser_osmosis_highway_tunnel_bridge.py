@@ -195,27 +195,23 @@ split the bridge or tunnel and adjust the tags accordingly.'''),
         #self.callback20 = lambda res: {"class":2, "data":[self.way_full, self.way_full, self.positionAsText] }
         #self.callback30 = lambda res: {"class":3, "data":[self.way_full, self.positionAsText] }
         def callback40(res):
-            # Extract the node ID from 'res'. Adjust based on the actual structure of 'res'.
-            node_id = res[0]  # Assuming the node ID is at index 0 in 'res'. Adjust this if necessary.
-            
             # Print the result for debugging purposes
             print("Result: ", res)
             
             # Calculate the class based on 'bridge' condition and other attributes
             class_val = (4 if res[4] == 'bridge' else 5) + (2 if res[5] else 0)
             
-            # Print detailed information, passing a dictionary with the extracted 'node_id' to node_full()
-            print(f"Class: {class_val}, Node: {self.node_full({'id': node_id})}, Way Full: {self.way_full(res)}, Way: {self.way(res)}, Position: {self.positionAsText(res)}")
+            # Print detailed information about the data being processed
+            print(f"Class: {class_val}, Node: {self.node_full}, Way Full: {self.way_full}, Way: {self.way}, Position: {self.positionAsText}")
             
             # Return the processed result as usual
             return {
                 "class": class_val,
-                "data": [self.node_full(res), self.way_full(res), self.way(res), self.positionAsText(res)]
+                "data": [self.node_full, self.way_full, self.way, self.positionAsText]
             }
         
         # Assign the function to the callback
         self.callback40 = callback40
-
 
     def analyser_osmosis_full(self):
         self.run(sql10.format(""), self.callback10)
